@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd      
+	http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	<!-- author minn -->
+ 
+  <context:property-placeholder ignore-unresolvable="true" location="classpath*:/spring/application.auth.properties" />
+ <context:component-scan base-package="p.minn.auth,p.minn.common.service,p.minn.security"/>
+
+  <bean id="authdataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" primary="true"> 
+		<property name="driverClassName" value="${jdbc.auth.driver}"/> 
+		<property name="url" value="${jdbc.auth.url}"/> 
+		<property name="username" value="${jdbc.auth.username}"/> 
+		<property name="password" value="${jdbc.auth.password}"/> 
+	</bean> 
+
+	<bean id="authtransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="authdataSource" />
+	</bean>
+	
+    <tx:annotation-driven transaction-manager="authtransactionManager"/>
+
+	<!-- define the SqlSessionFactory -->
+	<bean id="authSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="authdataSource" />
+		<property name="typeAliasesPackage" value="p.minn.common.entity,p.minn.auth.entity" />
+		<property name="mapperLocations" >
+				<list>
+		            <value>classpath:/mybatis/common/*Mapper.xml</value>
+		            <value>classpath:/mybatis/auth/*Mapper.xml</value>
+		        </list>
+		</property>
+		<!-- value="classpath:/mybatis/common/*Mapper.xml,classpath:/mybatis/auth/*Mapper.xml" />
+		 -->
+	</bean>
+
+
+	<!-- scan for mappers and let them be autowired -->
+	<bean id="authmapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="p.minn.common.repository,p.minn.auth.repository" />
+		<property name="sqlSessionFactoryBeanName" value="authSessionFactory"/>
+	</bean>
+	<!-- 
+    <aop:config>
+       <aop:pointcut expression="execution(public * p.minn..*.*(..))" id="crudlog"/>
+       <aop:advisor advice-ref="logTableAop" pointcut-ref="crudlog"/>
+    </aop:config>
+     -->
+ 
+</beans>
